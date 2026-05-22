@@ -1,254 +1,316 @@
-# ====================================================================================================
-# NEXORAHOST V2 ENTERPRISE PRODUCTION ARCHITECTURE - PRODUCTION DEPLOYMENT ENGINE
-# ====================================================================================================
-# Stack: Next.js Router Paradigm / NestJS Core Logic Core Framework / Prisma / PostgreSQL / Redis
-# Integrity Status: 100% Real API Payload Mapping, Strict Cryptographic Validation, Real Database Schema
-# File Name: nexorahost_v2_enterprise_production_core.py
-# ====================================================================================================
+'use client'
 
-import os
-import hmac
-import hashlib
-import json
-import time
-import requests
-import psycopg2
-import redis
-from datetime import datetime, timedelta
+import { useState } from 'react'
 
-# ====================================================================================================
-# MODULE 1: THE REAL ENTERPRISE DATABASE SCHEMA (PRODUCTION-GRADE RELATIONAL DATABASE POSTGRESQL / MYSQL)
-# ====================================================================================================
+export default function NexoraHost() {
+  const [domain, setDomain] = useState('')
+  const [result, setResult] = useState('')
 
-DB_SCHEMA = '''
--- Enums definitions for strict type checking
-CREATE TYPE user_role AS ENUM ('CLIENT', 'STAFF', 'ADMIN');
-CREATE TYPE account_status AS ENUM ('PENDING', 'ACTIVE', 'SUSPENDED', 'TERMINATED');
-CREATE TYPE payment_status AS ENUM ('UNPAID', 'PAID', 'REFUNDED', 'FAILED');
-CREATE TYPE ticket_status AS ENUM ('OPEN', 'IN_PROGRESS', 'ANSWERED', 'CLOSED');
+  const affiliateLink =
+    'https://hostinger.com?REFERRALCODE=YOURCODE'
 
--- 1. Real Users Infrastructure Table
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role user_role DEFAULT 'CLIENT',
-    two_factor_secret VARCHAR(128) DEFAULT NULL,
-    is_email_verified BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  const checkDomain = async () => {
+    if (!domain) return
 
--- 2. Real Invoices & Billing Engine System
-CREATE TABLE IF NOT EXISTS invoices (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    subtotal DECIMAL(10,2) NOT NULL,
-    tax DECIMAL(10,2) DEFAULT 0.00,
-    total DECIMAL(10,2) NOT NULL,
-    status payment_status DEFAULT 'UNPAID',
-    due_date TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    setResult(`"${domain}" looks available!`)
+  }
 
--- 3. Real Hosting Provisioning Accounts Management Data Table
-CREATE TABLE IF NOT EXISTS hosting_accounts (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    invoice_id INT REFERENCES invoices(id),
-    domain_name VARCHAR(255) NOT NULL,
-    package_tier VARCHAR(100) NOT NULL,
-    whm_username VARCHAR(64) UNIQUE NOT NULL,
-    status account_status DEFAULT 'PENDING',
-    server_ip VARCHAR(45) NOT NULL,
-    disk_usage_mb INT DEFAULT 0,
-    bandwidth_usage_mb INT DEFAULT 0,
-    suspended_reason TEXT DEFAULT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  const plans = [
+    {
+      name: 'Premium Hosting',
+      price: '$2.99/mo',
+      features: [
+        'Free SSL',
+        'Free Domain',
+        '100 Websites',
+        'LiteSpeed Servers',
+      ],
+    },
+    {
+      name: 'Business Hosting',
+      price: '$5.99/mo',
+      features: [
+        'Daily Backups',
+        'Cloudflare CDN',
+        'AI Tools',
+        'Priority Support',
+      ],
+    },
+    {
+      name: 'Cloud Startup',
+      price: '$9.99/mo',
+      features: [
+        'Dedicated Resources',
+        'Advanced Security',
+        'Unlimited Bandwidth',
+        'Free Migration',
+      ],
+    },
+  ]
 
--- 4. Real Domain Registration & Registrar Management System
-CREATE TABLE IF NOT EXISTS domains (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    invoice_id INT REFERENCES invoices(id),
-    domain_name VARCHAR(255) UNIQUE NOT NULL,
-    registrar_platform VARCHAR(100) NOT NULL,
-    status account_status DEFAULT 'PENDING',
-    whois_privacy_enabled BOOLEAN DEFAULT TRUE,
-    auto_renew BOOLEAN DEFAULT TRUE,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  return (
+    <main className="min-h-screen bg-black text-white">
+      {/* NAVBAR */}
+      <nav className="flex items-center justify-between px-8 py-6 border-b border-zinc-800">
+        <h1 className="text-3xl font-bold text-purple-500">
+          NexoraHost
+        </h1>
 
--- 5. Real Support Ticketing Module
-CREATE TABLE IF NOT EXISTS support_tickets (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    subject VARCHAR(255) NOT NULL,
-    priority VARCHAR(50) DEFAULT 'MEDIUM',
-    status ticket_status DEFAULT 'OPEN',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+        <div className="flex gap-6 text-sm">
+          <a href="#plans">Hosting</a>
+          <a href="#domain">Domains</a>
+          <a href="#reviews">Reviews</a>
+          <a href="#blog">Blog</a>
+        </div>
+      </nav>
 
--- 6. Real Global Audit Logs & Security Systems Monitor
-CREATE TABLE IF NOT EXISTS audit_logs (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE SET NULL,
-    ip_address VARCHAR(45) NOT NULL,
-    action_performed TEXT NOT NULL,
-    user_agent TEXT NOT NULL,
-    severity_level VARCHAR(50) DEFAULT 'INFO',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+      {/* HERO */}
+      <section className="text-center py-28 px-6 bg-gradient-to-b from-purple-950 to-black">
+        <h2 className="text-6xl font-bold leading-tight mb-6">
+          Best Hosting Deals <br />
+          For Your Website
+        </h2>
 
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_hosting_domain ON hosting_accounts(domain_name);
-CREATE INDEX idx_invoices_status ON invoices(status);
-'''
+        <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-10">
+          Compare premium hosting providers and launch your
+          website with ultra-fast cloud hosting.
+        </p>
 
-# ====================================================================================================
-# MODULE 2: REAL HOSTING INFRASTRUCTURE INTEGRATION (WHM/CPANEL AUTHENTIC LIVE API ENGINE)
-# ====================================================================================================
+        <div className="flex justify-center gap-5 flex-wrap">
+          <a
+            href={affiliateLink}
+            target="_blank"
+            className="bg-purple-600 hover:bg-purple-500 px-8 py-4 rounded-2xl text-lg font-bold"
+          >
+            Get Hosting
+          </a>
 
-class WHMProductionProvisioner:
-    def __init__(self, whm_host, access_token):
-        self.host = whm_host  
-        self.headers = {
-            "Authorization": f"whm root:{access_token}",
-            "Content-Type": "application/json"
-        }
+          <a
+            href="#plans"
+            className="border border-zinc-700 px-8 py-4 rounded-2xl"
+          >
+            Compare Plans
+          </a>
+        </div>
+      </section>
 
-    def provision_hosting_account(self, domain, username, password, plan_tier):
-        endpoint = f"{self.host}/json-api/createacct?api.version=1"
-        payload = {
-            "username": username,
-            "domain": domain,
-            "plan": plan_tier,
-            "password": password,
-            "contactemail": f"admin@{domain}",
-            "userns": 1,
-            "mxcheck": "local"
-        }
-        try:
-            response = requests.post(endpoint, json=payload, headers=self.headers, verify=True, timeout=15)
-            data = response.json()
-            metadata = data.get('metadata', {})
-            if metadata.get('result') == 1 or "success" in metadata.get('reason', '').lower():
-                return {"status": "ACTIVE", "server_ip": self.host.split("//")[-1].split(":")[0], "log": metadata.get('reason')}
-            else:
-                return {"status": "FAILED", "error": metadata.get('reason')}
-        except Exception as e:
-            return {"status": "FAILED", "error": str(e)}
+      {/* DOMAIN SEARCH */}
+      <section
+        id="domain"
+        className="max-w-5xl mx-auto px-6 py-24"
+      >
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-10">
+          <h2 className="text-4xl font-bold mb-6 text-center">
+            Search Your Domain
+          </h2>
 
-    def suspend_hosting_account(self, username, reason):
-        endpoint = f"{self.host}/json-api/suspendacct?api.version=1"
-        payload = {"user": username, "reason": reason}
-        response = requests.post(endpoint, json=payload, headers=self.headers, verify=True)
-        return response.json()
+          <div className="flex flex-col md:flex-row gap-4">
+            <input
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              placeholder="Enter domain name..."
+              className="flex-1 bg-black border border-zinc-700 p-4 rounded-2xl"
+            />
 
-# ====================================================================================================
-# MODULE 3: REAL DOMAIN REGISTRAR BACKEND INTEGRATION (NAMECHEAP SECURE CORE API HOOKS)
-# ====================================================================================================
+            <button
+              onClick={checkDomain}
+              className="bg-purple-600 hover:bg-purple-500 px-8 rounded-2xl font-bold"
+            >
+              Search
+            </button>
+          </div>
 
-class NamecheapLiveRegistrar:
-    def __init__(self, api_user, api_key, client_ip):
-        self.endpoint = "https://api.namecheap.com/xml.response" 
-        self.base_params = {
-            "ApiUser": api_user,
-            "ApiKey": api_key,
-            "UserName": api_user,
-            "ClientIp": client_ip
-        }
+          {result && (
+            <div className="mt-6 text-green-400 text-center">
+              {result}
+            </div>
+          )}
 
-    def verify_domain_availability(self, domain_name):
-        params = self.base_params.copy()
-        params.update({
-            "Command": "namecheap.domains.check",
-            "DomainList": domain_name
-        })
-        try:
-            response = requests.get(self.endpoint, params=params, timeout=10)
-            if response.status_code == 200:
-                is_available = 'Available="true"' in response.text
-                return {"available": is_available, "domain": domain_name}
-            return {"available": False, "error": "Upstream Registry Unreachable"}
-        except Exception as e:
-            return {"available": False, "error": str(e)}
+          <div className="text-center mt-8">
+            <a
+              href={affiliateLink}
+              target="_blank"
+              className="inline-block bg-white text-black px-8 py-4 rounded-2xl font-bold"
+            >
+              Buy Domain & Hosting
+            </a>
+          </div>
+        </div>
+      </section>
 
-# ====================================================================================================
-# MODULE 4: REAL PAYMENTS PROCESSING GATEWAY (STRIPE WEBHOOKS & BINANCE CRYPTO INTERACTION)
-# ====================================================================================================
+      {/* HOSTING PLANS */}
+      <section
+        id="plans"
+        className="max-w-7xl mx-auto px-6 py-20"
+      >
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-bold mb-4">
+            Hosting Plans
+          </h2>
 
-class EnterprisePaymentGatewayHub:
-    @staticmethod
-    def construct_stripe_payment_intent(amount_cents, currency, client_secret_key):
-        url = "https://api.stripe.com/v1/payment_intents"
-        headers = {
-            "Authorization": f"Bearer {client_secret_key}",
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-        data = {
-            "amount": amount_cents,
-            "currency": currency,
-            "payment_method_types[]": "card"
-        }
-        response = requests.post(url, data=data, headers=headers, timeout=10)
-        return response.json()
+          <p className="text-zinc-400">
+            Professional hosting packages for all websites.
+          </p>
+        </div>
 
-    @staticmethod
-    def verify_binance_pay_signature(payload_string, signature, api_secret):
-        hashed_payload = hmac.new(
-            api_secret.encode('utf-8'),
-            payload_string.encode('utf-8'),
-            hashlib.sha256
-        ).hexdigest().upper()
-        return hashed_payload == signature
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {plans.map((plan, i) => (
+            <div
+              key={i}
+              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 hover:border-purple-500 transition"
+            >
+              <h3 className="text-3xl font-bold mb-4">
+                {plan.name}
+              </h3>
 
-# ====================================================================================================
-# MODULE 5: ASYNC QUEUE ENGINE WORKER (REAL REDIS & CELERY DISPATCH HOOKS FOR CRON LOGIC)
-# ====================================================================================================
+              <p className="text-5xl font-bold text-purple-400 mb-8">
+                {plan.price}
+              </p>
 
-class NexoraAsyncPipelineWorker:
-    def __init__(self, redis_host="127.0.0.1", redis_port=6379):
-        self.r = redis.Redis(host=redis_host, port=redis_port, db=0)
+              <ul className="space-y-4 mb-10 text-zinc-300">
+                {plan.features.map((f, idx) => (
+                  <li key={idx}>✓ {f}</li>
+                ))}
+              </ul>
 
-    def queue_provisioning_task(self, task_data):
-        self.r.rpush("nexora_provisioning_queue", json.dumps(task_data))
+              <a
+                href={affiliateLink}
+                target="_blank"
+                className="block text-center bg-purple-600 hover:bg-purple-500 py-4 rounded-2xl font-bold"
+              >
+                Buy Hosting
+              </a>
+            </div>
+          ))}
+        </div>
+      </section>
 
-    def run_worker_loop(self):
-        print("[PROCESS] NexoraHost V2 Enterprise Automation Daemon Active. Scanning pipelines...")
+      {/* REVIEWS */}
+      <section
+        id="reviews"
+        className="bg-zinc-950 py-24 px-6"
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold mb-4">
+              Why Choose Us
+            </h2>
 
-# ====================================================================================================
-# MODULE 6: SECURE MIDDLEWARE SUITE & PROTECTION SYSTEM LAYERS
-# ====================================================================================================
+            <p className="text-zinc-400">
+              Trusted hosting recommendations for creators,
+              bloggers, and businesses.
+            </p>
+          </div>
 
-class EnterpriseSecurityEngine:
-    @staticmethod
-    def implement_rate_limiting(client_ip, redis_client, max_requests=60, execution_window=60):
-        key = f"rate_limit:{client_ip}"
-        current_requests = redis_client.get(key)
-        if current_requests and int(current_requests) >= max_requests:
-            return False 
-        
-        pipeline = redis_client.pipeline()
-        pipeline.incr(key)
-        if not current_requests:
-            pipeline.expire(key, execution_window)
-        pipeline.execute()
-        return True
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-black border border-zinc-800 rounded-3xl p-8">
+              <h3 className="text-2xl font-bold mb-4">
+                Fast Servers
+              </h3>
 
-    @staticmethod
-    def sanitize_sql_injection_vectors(input_string):
-        invalid_characters = [";", "--", "/*", "*/", "xp_"]
-        cleaned_string = input_string
-        for char in invalid_characters:
-            cleaned_string = cleaned_string.replace(char, "")
-        return cleaned_string
+              <p className="text-zinc-400">
+                Optimized cloud infrastructure for ultra-fast
+                loading speeds.
+              </p>
+            </div>
 
-if __name__ == "__main__":
-    print("====================================================================================")
-    print("         NEXORAHOST V2 ENTERPRISE PLATFORM COMPILING COMPLETED SUCESSFULLY          ")
-    print("====================================================================================")
+            <div className="bg-black border border-zinc-800 rounded-3xl p-8">
+              <h3 className="text-2xl font-bold mb-4">
+                Free SSL
+              </h3>
+
+              <p className="text-zinc-400">
+                Secure your website with free SSL certificates.
+              </p>
+            </div>
+
+            <div className="bg-black border border-zinc-800 rounded-3xl p-8">
+              <h3 className="text-2xl font-bold mb-4">
+                AI Website Tools
+              </h3>
+
+              <p className="text-zinc-400">
+                Build websites quickly using AI-powered tools.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* BLOG */}
+      <section
+        id="blog"
+        className="max-w-7xl mx-auto py-24 px-6"
+      >
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-bold mb-4">
+            Latest Guides
+          </h2>
+
+          <p className="text-zinc-400">
+            Learn how to build and grow websites online.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden"
+            >
+              <div className="h-48 bg-gradient-to-r from-purple-700 to-indigo-700"></div>
+
+              <div className="p-8">
+                <h3 className="text-2xl font-bold mb-4">
+                  How To Start A Website In 2026
+                </h3>
+
+                <p className="text-zinc-400 mb-6">
+                  Complete guide for beginners to launch a
+                  website online.
+                </p>
+
+                <a
+                  href={affiliateLink}
+                  target="_blank"
+                  className="text-purple-400 font-bold"
+                >
+                  Read More →
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 px-6">
+        <div className="max-w-5xl mx-auto bg-gradient-to-r from-purple-700 to-indigo-700 rounded-3xl p-16 text-center">
+          <h2 className="text-5xl font-bold mb-6">
+            Launch Your Website Today
+          </h2>
+
+          <p className="text-lg mb-10 text-zinc-100">
+            Start your online journey with premium cloud hosting.
+          </p>
+
+          <a
+            href={affiliateLink}
+            target="_blank"
+            className="bg-white text-black px-10 py-5 rounded-2xl font-bold text-lg"
+          >
+            Claim Hosting Discount
+          </a>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-zinc-800 py-10 text-center text-zinc-500">
+        <p>
+          © 2026 NexoraHost Affiliate Platform. All rights
+          reserved.
+        </p>
+      </footer>
+    </main>
+  )
+}
